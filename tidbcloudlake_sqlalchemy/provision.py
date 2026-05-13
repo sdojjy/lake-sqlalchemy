@@ -1,0 +1,47 @@
+
+from sqlalchemy.testing.provision import create_db
+from sqlalchemy.testing.provision import drop_db
+from sqlalchemy.testing.provision import configure_follower, update_db_opts, temp_table_keyword_args
+
+
+@create_db.for_db("tidbcloudlake")
+def _tidbcloudlake_create_db(cfg, eng, ident):
+    with eng.begin() as conn:
+        try:
+            _tidbcloudlake_drop_db(cfg, conn, ident)
+        except Exception:
+            pass
+
+    with eng.begin() as conn:
+        conn.exec_driver_sql(
+            "CREATE DATABASE IF NOT EXISTS %s " % ident
+        )
+        conn.exec_driver_sql(
+            "CREATE DATABASE IF NOT EXISTS %s_test_schema" % ident
+        )
+        conn.exec_driver_sql(
+            "CREATE DATABASE IF NOT EXISTS %s_test_schema_2" % ident
+        )
+
+
+@drop_db.for_db("tidbcloudlake")
+def _tidbcloudlake_drop_db(cfg, eng, ident):
+    with eng.begin() as conn:
+        conn.exec_driver_sql("DROP DATABASE IF EXISTS %s_test_schema" % ident)
+        conn.exec_driver_sql("DROP DATABASE IF EXISTS %s_test_schema_2" % ident)
+        conn.exec_driver_sql("DROP DATABASE IF EXISTS %s" % ident)
+
+@temp_table_keyword_args.for_db("tidbcloudlake")
+def _tidbcloudlake_temp_table_keyword_args(cfg, eng):
+    return {"prefixes": ["TEMPORARY"]}
+
+
+@configure_follower.for_db("tidbcloudlake")
+def _tidbcloudlake_configure_follower(config, ident):
+    config.test_schema = "%s_test_schema" % ident
+    config.test_schema_2 = "%s_test_schema_2" % ident
+
+# Uncomment to debug SQL Statements in tests
+# @update_db_opts.for_db("tidbcloudlake")
+# def _tidbcloudlake_update_db_opts(db_url, db_opts):
+#     db_opts["echo"] = True
