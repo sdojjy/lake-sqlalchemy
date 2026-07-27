@@ -217,10 +217,3 @@ The table options can be used as below::
 
         meta.create_all(engine)
 
-
-
-Compatibility
----------------
-
-- If tidbcloudlake version >= v0.9.0 or later, you need to use tidbcloudlake-sqlalchemy version >= v0.1.0.
-- The tidbcloudlake-sqlalchemy use [tidbcloudlake-py](https://github.com/tidbcloud/tidbcloudlake-py) as internal driver when version < v0.4.0, but when version >= v0.4.0 it use [tidbcloudlake driver python binding](https://github.com/tidbcloud/bendsql/blob/main/bindings/python/README.md) as internal driver. The only difference between the two is that the connection parameters provided in the DSN are different. When using the corresponding version, you should refer to the connection parameters provided by the corresponding Driver.
