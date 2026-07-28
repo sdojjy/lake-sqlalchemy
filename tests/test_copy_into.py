@@ -63,7 +63,7 @@ class CompileTiDBCloudLakeCopyIntoTableTest(fixtures.TestBase, AssertsCompiledSQ
                 "CONNECTION = ("
                 "  ACCESS_KEY_ID = 'ACCESS_KEY' "
                 "  SECRET_ACCESS_KEY = 'SECRET_KEY'"
-                "\n) FILE_FORMAT = (TYPE = PARQUET)\n"
+                ") FILE_FORMAT = (TYPE = PARQUET)"
             ),
         )
 
@@ -96,10 +96,10 @@ class CompileTiDBCloudLakeCopyIntoTableTest(fixtures.TestBase, AssertsCompiledSQ
                 " FROM 's3://some-bucket/a/path/to/files' "
                 "CONNECTION = ("
                 "  ACCESS_KEY_ID = 'ACCESS_KEY' "
-                "  SECRET_ACCESS_KEY = 'SECRET_KEY'\n"
-                "  ENDPOINT_URL = 'https://s3.example.com' \n"
-                "  REGION = 'us-west-2'\n"
-                "\n) FILE_FORMAT = (TYPE = PARQUET)\n"
+                "  SECRET_ACCESS_KEY = 'SECRET_KEY'"
+                "  ENDPOINT_URL = 'https://s3.example.com' "
+                "  REGION = 'us-west-2'"
+                ") FILE_FORMAT = (TYPE = PARQUET)"
             ),
         )
 
@@ -332,4 +332,3 @@ class CopyIntoResultTest(fixtures.TablesTest):
             eq_(result['errors_seen'], 0)
             eq_(result['first_error'], None)
             eq_(result['first_error_line'], None)
-
