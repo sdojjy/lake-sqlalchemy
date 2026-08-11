@@ -44,7 +44,7 @@ def engine(
     username: str, password: str, host_port_name: str, database_name: str
 ) -> Engine:
     return create_engine(
-        f"tidbcloudlake://{username}:{password}@{host_port_name}/{database_name}?sslmode=disable"
+        f"lake://{username}:{password}@{host_port_name}/{database_name}?sslmode=disable"
     )
 
 

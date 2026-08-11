@@ -98,19 +98,13 @@ def connect(*args, **kwargs):
     return Connection(*args, **kwargs)
 
 
-def _normalize_driver_dsn(dsn: str) -> str:
-    if dsn.startswith("tidbcloudlake://"):
-        return "lake://" + dsn[len("tidbcloudlake://") :]
-    return dsn
-
-
 class Connection:
     """
     These objects are small stateless factories for cursors, which do all the real work.
     """
 
-    def __init__(self, dsn="tidbcloudlake://root:@localhost:8000/?sslmode=disable"):
-        self.client = BlockingLakeClient(_normalize_driver_dsn(dsn))
+    def __init__(self, dsn="lake://root:@localhost:8000/?sslmode=disable"):
+        self.client = BlockingLakeClient(dsn)
 
     def close(self):
         pass

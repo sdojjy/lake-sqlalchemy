@@ -1,8 +1,6 @@
 from sqlalchemy.dialects import registry
 import pytest
 
-registry.register("tidbcloudlake.tidbcloudlake", "tidbcloudlake_sqlalchemy.tidbcloudlake_dialect", "TiDBCloudLakeDialect")
-registry.register("tidbcloudlake", "tidbcloudlake_sqlalchemy.tidbcloudlake_dialect", "TiDBCloudLakeDialect")
 registry.register("lake", "tidbcloudlake_sqlalchemy.tidbcloudlake_dialect", "TiDBCloudLakeDialect")
 
 pytest.register_assert_rewrite("sa.testing.assertions")

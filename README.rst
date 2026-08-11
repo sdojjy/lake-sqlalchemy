@@ -24,10 +24,6 @@ part of the URL::
     with engine.connect() as connection:
         assert connection.execute(text("SELECT 1")).scalar_one() == 1
 
-``tidbcloudlake://`` remains accepted as a backward-compatible alias, but new
-applications should use ``lake://``.
-
-
 Merge Command Support
 ---------------------
 
