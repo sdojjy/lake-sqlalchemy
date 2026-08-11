@@ -1396,8 +1396,8 @@ class TiDBCloudLakeDDLCompiler(compiler.DDLCompiler):
 
 
 class TiDBCloudLakeDialect(default.DefaultDialect):
-    name = "tidbcloudlake"
-    driver = "tidbcloudlake"
+    name = "lake"
+    driver = "lake"
     supports_cast = True
     supports_sane_rowcount = False
     supports_sane_multi_rowcount = False

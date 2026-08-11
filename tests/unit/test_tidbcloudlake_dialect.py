@@ -23,8 +23,8 @@ class TestTiDBCloudLakeDialect:
     def test_create_dialect(self, dialect: TiDBCloudLakeDialect):
         assert issubclass(dialect_definition, TiDBCloudLakeDialect)
         assert isinstance(TiDBCloudLakeDialect.dbapi(), type(tidbcloudlake_sqlalchemy))
-        assert dialect.name == "tidbcloudlake"
-        assert dialect.driver == "tidbcloudlake"
+        assert dialect.name == "lake"
+        assert dialect.driver == "lake"
         assert issubclass(dialect.preparer, TiDBCloudLakeIdentifierPreparer)
         assert issubclass(dialect.statement_compiler, TiDBCloudLakeCompiler)
         # SQLAlchemy's DefaultDialect creates an instance of

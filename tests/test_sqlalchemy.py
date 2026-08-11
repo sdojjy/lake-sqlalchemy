@@ -254,7 +254,7 @@ class ServerSideCursorsTest(_ServerSideCursorsTest):
 
     def _is_server_side(self, cursor):
         # ToDo - requires implementation of `stream_results` option, so True always for now
-        if self.engine.dialect.driver == "tidbcloudlake":
+        if self.engine.dialect.driver == "lake":
             return True
         return super()
 
