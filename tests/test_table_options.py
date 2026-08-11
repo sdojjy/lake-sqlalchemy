@@ -6,13 +6,13 @@ from sqlalchemy import Table, Column, Integer, String, func, MetaData, schema, c
 
 class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL):
 
-    __only_on__ = "tidbcloudlake"
+    __only_on__ = "lake"
 
     def test_create_table_transient_on(self):
         m = MetaData()
         tbl = Table(
             'atable', m, Column("id", Integer),
-            tidbcloudlake_transient=True,
+            lake_transient=True,
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -22,7 +22,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         m = MetaData()
         tbl = Table(
             'atable', m, Column("id", Integer),
-            tidbcloudlake_transient=False,
+            lake_transient=False,
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -32,7 +32,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         m = MetaData()
         tbl = Table(
             'atable', m, Column("id", Integer),
-            tidbcloudlake_engine='Memory',
+            lake_engine='Memory',
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -42,7 +42,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         m = MetaData()
         tbl = Table(
             'atable', m, Column("id", Integer),
-            tidbcloudlake_cluster_by='id',
+            lake_cluster_by='id',
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -52,7 +52,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         m = MetaData()
         tbl = Table(
             'atable', m, Column("id", Integer), Column("Name", String),
-            tidbcloudlake_cluster_by=['id', 'Name'],
+            lake_cluster_by=['id', 'Name'],
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -63,7 +63,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         c = Column("id", Integer)
         tbl = Table(
             'atable', m, c,
-            tidbcloudlake_cluster_by=[c],
+            lake_cluster_by=[c],
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -75,7 +75,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         c2 = Column("Name", String)
         tbl = Table(
             'atable', m, c, c2,
-            tidbcloudlake_cluster_by=[c, c2],
+            lake_cluster_by=[c, c2],
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -87,7 +87,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         c2 = Column("Name", String)
         tbl = Table(
             'atable', m, c, c2,
-            tidbcloudlake_cluster_by=[cast(c, String), c2],
+            lake_cluster_by=[cast(c, String), c2],
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -99,7 +99,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
         c2 = Column("Name", String)
         tbl = Table(
             'atable', m, c, c2,
-            tidbcloudlake_cluster_by="CAST(id AS VARCHAR), \"Name\"",
+            lake_cluster_by="CAST(id AS VARCHAR), \"Name\"",
         )
         self.assert_compile(
             schema.CreateTable(tbl),
@@ -110,7 +110,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
     #     m = MetaData()
     #     tbl = Table(
     #         'atable', m, Column("id", Integer),
-    #         tidbcloudlake_engine_options=(
+    #         lake_engine_options=(
     #             ("compression", "snappy"),
     #             ("storage_format", "parquet"),
     #         ))
@@ -121,7 +121,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
 
 class ReflectTiDBCloudLakeTableOptionsTest(fixtures.TablesTest):
     __backend__ = True
-    __only_on__ = "tidbcloudlake"
+    __only_on__ = "lake"
 
     # 'once', 'each', None
     run_inserts = "None"
@@ -136,7 +136,7 @@ class ReflectTiDBCloudLakeTableOptionsTest(fixtures.TablesTest):
             metadata,
             Column("id", Integer, primary_key=True),
             Column("Name", String),
-            tidbcloudlake_engine="Memory",
+            lake_engine="Memory",
         )
         c2 = Column("id", Integer, primary_key=True)
         Table(
@@ -144,7 +144,7 @@ class ReflectTiDBCloudLakeTableOptionsTest(fixtures.TablesTest):
             metadata,
             c2,
             Column("Name", String),
-            tidbcloudlake_cluster_by=[c2, "Name"],
+            lake_cluster_by=[c2, "Name"],
         )
         c3 = Column("id", Integer, primary_key=True)
         Table(
@@ -152,7 +152,7 @@ class ReflectTiDBCloudLakeTableOptionsTest(fixtures.TablesTest):
             metadata,
             c3,
             Column("Name", String),
-            tidbcloudlake_cluster_by=[cast(c3, String), "Name"],
+            lake_cluster_by=[cast(c3, String), "Name"],
         )
         c4 = Column("id", Integer, primary_key=True)
         Table(
@@ -160,7 +160,7 @@ class ReflectTiDBCloudLakeTableOptionsTest(fixtures.TablesTest):
             metadata,
             c4,
             Column("Name", String),
-            tidbcloudlake_cluster_by='CAST(id AS STRING), "Name"',
+            lake_cluster_by='CAST(id AS STRING), "Name"',
         )
 
     def test_reflect_table_engine(self):
@@ -168,25 +168,25 @@ class ReflectTiDBCloudLakeTableOptionsTest(fixtures.TablesTest):
         t1_ref = Table(
             "t2_engine", m2, autoload_with=config.db
         )
-        assert t1_ref.dialect_options['tidbcloudlake']['engine'] == 'MEMORY'
+        assert t1_ref.dialect_options['lake']['engine'] == 'MEMORY'
 
     def test_reflect_table_cluster_by_column(self):
         m2 = MetaData()
         t2_ref = Table(
             "t2_cluster_by_column", m2, autoload_with=config.db
         )
-        assert t2_ref.dialect_options['tidbcloudlake']['cluster_by'] == 'id, "Name"'
+        assert t2_ref.dialect_options['lake']['cluster_by'] == 'id, "Name"'
 
     def test_reflect_table_cluster_by_expr(self):
         m2 = MetaData()
         t3_ref = Table(
             "t3_cluster_by_expr", m2, autoload_with=config.db
         )
-        assert t3_ref.dialect_options['tidbcloudlake']['cluster_by'] == 'CAST(id AS STRING), "Name"'
+        assert t3_ref.dialect_options['lake']['cluster_by'] == 'CAST(id AS STRING), "Name"'
 
     def test_reflect_table_cluster_by_str(self):
         m2 = MetaData()
         t4_ref = Table(
             "t4_cluster_by_str", m2, autoload_with=config.db
         )
-        assert t4_ref.dialect_options['tidbcloudlake']['cluster_by'] == 'CAST(id AS STRING), "Name"'
+        assert t4_ref.dialect_options['lake']['cluster_by'] == 'CAST(id AS STRING), "Name"'

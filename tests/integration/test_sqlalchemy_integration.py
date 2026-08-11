@@ -12,7 +12,7 @@ class TestTiDBCloudLakeDialect:
         self, username: str, password: str, database_name: str, host_port_name: str
     ):
         engine = create_engine(
-            f"tidbcloudlake://{username}:{password}@{host_port_name}/{database_name}?sslmode=disable"
+            f"lake://{username}:{password}@{host_port_name}/{database_name}?sslmode=disable"
         )
         connection = engine.connect()
         result = connection.execute(text("SELECT 1"))

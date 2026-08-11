@@ -33,7 +33,7 @@ from packaging import version
 
 class CompileTiDBCloudLakeCopyIntoTableTest(fixtures.TestBase, AssertsCompiledSQL):
 
-    __only_on__ = "tidbcloudlake"
+    __only_on__ = "lake"
 
     def test_copy_into_table(self):
         m = MetaData()
@@ -208,7 +208,7 @@ class CopyIntoResultTest(fixtures.TablesTest):
             metadata,
             Column("id", Integer),
             Column("data", String(50)),
-            tidbcloudlake_engine='Random',
+            lake_engine='Random',
         )
         Table(
             "loaded",
@@ -264,5 +264,4 @@ class CopyIntoResultTest(fixtures.TablesTest):
             eq_(result['errors_seen'], 0)
             eq_(result['first_error'], None)
             eq_(result['first_error_line'], None)
-
 

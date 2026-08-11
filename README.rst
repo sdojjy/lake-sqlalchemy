@@ -1,5 +1,5 @@
 tidbcloudlake-sqlalchemy
-===================
+=========================
 
 TiDB Cloud Lake dialect for SQLAlchemy.
 
@@ -13,25 +13,16 @@ The package is installable through PIP::
 Usage
 -----
 
-The DSN format is similar to that of regular Postgres::
+Use a ``lake://`` URL with SQLAlchemy. The database name and warehouse are
+part of the URL::
 
-        from sqlalchemy import create_engine, text
-        from sqlalchemy.engine.base import Connection, Engine
-        engine = create_engine(
-            f"tidbcloudlake://{username}:{password}@{host_port_name}/{database_name}?sslmode=disable"
-        )
-        connection = engine.connect()
-        result = connection.execute(text("SELECT 1"))
-        assert len(result.fetchall()) == 1
+    from sqlalchemy import create_engine, text
 
-        import connector
-        cursor = connector.connect('tidbcloudlake://root:@localhost:8000?sslmode=disable').cursor()
-        cursor.execute('SELECT * FROM test')
-        # print(cursor.fetchone())
-        # print(cursor.fetchall())
-        for row in cursor:
-            print(row)
-
+    engine = create_engine(
+        "lake://<username>:<password>@<host>:443/default?warehouse=default"
+    )
+    with engine.connect() as connection:
+        assert connection.execute(text("SELECT 1")).scalar_one() == 1
 
 Merge Command Support
 ---------------------
@@ -44,7 +35,7 @@ The Merge command can be used as below::
         from sqlalchemy import MetaData, create_engine
         from tidbcloudlake_sqlalchemy.tidbcloudlake_dialect import Merge
 
-        engine = create_engine(db.url, echo=False)
+        engine = create_engine("lake://<username>:<password>@<host>:443/default?warehouse=default")
         session = sessionmaker(bind=engine)()
         connection = engine.connect()
 
@@ -64,18 +55,21 @@ The Merge command can be used as below::
 Copy Into Command Support
 ---------------------
 
-TiDB Cloud Lake SQLAlchemy supports copy into operations through it's CopyIntoTable and CopyIntoLocation methods. See `CopyIntoLocation <https://docs.pingcap.com/tidbcloudlake/copy-into-location/>`_ or `CopyIntoTable <https://docs.pingcap.com/tidbcloudlake/copy-into-table/>`_ for full documentation.
+TiDB Cloud Lake SQLAlchemy supports copy into operations through its
+``CopyIntoTable`` and ``CopyIntoLocation`` methods. See `CopyIntoLocation <https://docs.pingcap.com/tidbcloudlake/copy-into-location/>`_ or `CopyIntoTable <https://docs.pingcap.com/tidbcloudlake/copy-into-table/>`_ for full documentation.
 
 The CopyIntoTable command can be used as below::
+
+        import base64
 
         from sqlalchemy.orm import sessionmaker
         from sqlalchemy import MetaData, create_engine
         from tidbcloudlake_sqlalchemy import (
             CopyIntoTable, GoogleCloudStorage, ParquetFormat, CopyIntoTableOptions,
-            FileColumnClause, CSVFormat,
+            FileColumnClause, CSVFormat, Compression,
         )
 
-        engine = create_engine(db.url, echo=False)
+        engine = create_engine("lake://<username>:<password>@<host>:443/default?warehouse=default")
         session = sessionmaker(bind=engine)()
         connection = engine.connect()
 
@@ -134,13 +128,15 @@ The CopyIntoTable command can be used as below::
 
 The CopyIntoLocation command can be used as below::
 
+        import base64
+
+        from sqlalchemy import MetaData, create_engine, select
         from sqlalchemy.orm import sessionmaker
-        from sqlalchemy import MetaData, create_engine
         from tidbcloudlake_sqlalchemy import (
             CopyIntoLocation, GoogleCloudStorage, ParquetFormat, CopyIntoLocationOptions,
         )
 
-        engine = create_engine(db.url, echo=False)
+        engine = create_engine("lake://<username>:<password>@<host>:443/default?warehouse=default")
         session = sessionmaker(bind=engine)()
         connection = engine.connect()
 
@@ -169,14 +165,13 @@ The CopyIntoLocation command can be used as below::
 Table Options
 ---------------------
 
-TiDB Cloud Lake SQLAlchemy supports tidbcloudlake specific table options for Engine, Cluster Keys and Transient tables
+TiDB Cloud Lake SQLAlchemy supports Lake-specific table options for Engine, Cluster Keys and Transient tables
 
 The table options can be used as below::
 
-        from sqlalchemy import Table, Column
-        from sqlalchemy import MetaData, create_engine
+        from sqlalchemy import Column, Integer, MetaData, String, Table, cast, create_engine
 
-        engine = create_engine(db.url, echo=False)
+        engine = create_engine("lake://<username>:<password>@<host>:443/default?warehouse=default")
 
         meta = MetaData()
         # Example of Transient Table
@@ -184,7 +179,7 @@ The table options can be used as below::
             "t_transient",
             meta,
             Column("c1", Integer),
-            tidbcloudlake_transient=True,
+            lake_transient=True,
         )
 
         # Example of Engine
@@ -192,7 +187,7 @@ The table options can be used as below::
             "t_engine",
             meta,
             Column("c1", Integer),
-            tidbcloudlake_engine='Memory',
+            lake_engine='Memory',
         )
 
         # Examples of Table with Cluster Keys
@@ -200,7 +195,7 @@ The table options can be used as below::
             "t_cluster_1",
             meta,
             Column("c1", Integer),
-            tidbcloudlake_cluster_by=[c1],
+            lake_cluster_by=[c1],
         )
         #
         c = Column("id", Integer)
@@ -210,8 +205,7 @@ The table options can be used as below::
             meta,
             c,
             c2,
-            tidbcloudlake_cluster_by=[cast(c, String), c2],
+            lake_cluster_by=[cast(c, String), c2],
         )
 
         meta.create_all(engine)
-

@@ -12,15 +12,15 @@ dialect in conjunction with the :class:`_schema.Table` construct:
 
 * ``ENGINE``::
 
-    Table("some_table", metadata, ..., tidbcloudlake_engine=FUSE|Memory|Random|Iceberg|Delta)
+    Table("some_table", metadata, ..., lake_engine=FUSE|Memory|Random|Iceberg|Delta)
 
 * ``CLUSTER KEY``::
 
-    Table("some_table", metadata, ..., tidbcloudlake_cluster_by=str|LIST(expr|str))
+    Table("some_table", metadata, ..., lake_cluster_by=str|LIST(expr|str))
 
 * ``TRANSIENT``::
 
-    Table("some_table", metadata, ..., tidbcloudlake_transient=True|False)
+    Table("some_table", metadata, ..., lake_transient=True|False)
 
 """
 import decimal
@@ -1322,7 +1322,7 @@ class TiDBCloudLakeDDLCompiler(compiler.DDLCompiler):
 
     def visit_create_table(self, create, **kw):
         table = create.element
-        db_opts = table.dialect_options["tidbcloudlake"]
+        db_opts = table.dialect_options["lake"]
         if "transient" in db_opts and db_opts["transient"]:
             if "transient" not in [p.lower() for p in table._prefixes]:
                 table._prefixes.append("TRANSIENT")
@@ -1330,7 +1330,7 @@ class TiDBCloudLakeDDLCompiler(compiler.DDLCompiler):
 
     def post_create_table(self, table):
         table_opts = []
-        db_opts = table.dialect_options["tidbcloudlake"]
+        db_opts = table.dialect_options["lake"]
 
         engine = db_opts.get("engine")
         if engine is not None:
@@ -1396,8 +1396,8 @@ class TiDBCloudLakeDDLCompiler(compiler.DDLCompiler):
 
 
 class TiDBCloudLakeDialect(default.DefaultDialect):
-    name = "tidbcloudlake"
-    driver = "tidbcloudlake"
+    name = "lake"
+    driver = "lake"
     supports_cast = True
     supports_sane_rowcount = False
     supports_sane_multi_rowcount = False
@@ -1468,20 +1468,10 @@ class TiDBCloudLakeDialect(default.DefaultDialect):
         return self.dbapi.connect(*cargs, **cparams)
 
     def create_connect_args(self, url):
-        parameters = dict(url.query)
-        kwargs = {
-            "dsn": "tidbcloudlake://%s:%s@%s:%d/%s"
-            % (url.username, url.password, url.host, url.port or 8000, url.database),
-        }
-
-        if parameters:
-            kwargs["dsn"] += "?"
-            param_strings = []
-            for k, v in parameters.items():
-                param_strings.append(f"{k}={v}")
-            kwargs["dsn"] += "&".join(param_strings)
-
-        return ([], kwargs)
+        return (
+            [],
+            {"dsn": url.set(drivername="lake").render_as_string(hide_password=False)},
+        )
 
     def create_server_side_cursor(self):
         return self.create_default_cursor()
@@ -1724,12 +1714,12 @@ class TiDBCloudLakeDialect(default.DefaultDialect):
             )
 
         if result.engine_full:
-            options["tidbcloudlake_engine"] = result.engine_full
+            options["lake_engine"] = result.engine_full
         if result.cluster_by:
             cluster_by = re.match(r"\((.*)\)", result.cluster_by).group(1)
-            options["tidbcloudlake_cluster_by"] = cluster_by
+            options["lake_cluster_by"] = cluster_by
         if result.is_transient:
-            options["tidbcloudlake_is_transient"] = result.is_transient
+            options["lake_is_transient"] = result.is_transient
 
         # engine options
 

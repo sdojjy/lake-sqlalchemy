@@ -23,8 +23,8 @@ class TestTiDBCloudLakeDialect:
     def test_create_dialect(self, dialect: TiDBCloudLakeDialect):
         assert issubclass(dialect_definition, TiDBCloudLakeDialect)
         assert isinstance(TiDBCloudLakeDialect.dbapi(), type(tidbcloudlake_sqlalchemy))
-        assert dialect.name == "tidbcloudlake"
-        assert dialect.driver == "tidbcloudlake"
+        assert dialect.name == "lake"
+        assert dialect.driver == "lake"
         assert issubclass(dialect.preparer, TiDBCloudLakeIdentifierPreparer)
         assert issubclass(dialect.statement_compiler, TiDBCloudLakeCompiler)
         # SQLAlchemy's DefaultDialect creates an instance of
@@ -33,19 +33,20 @@ class TestTiDBCloudLakeDialect:
         assert dialect.context == {}
 
     def test_create_connect_args(self, dialect: TiDBCloudLakeDialect):
-        u = url.make_url("tidbcloudlake://user:pass@localhost:8000/testdb")
-        result_list, result_dict = dialect.create_connect_args(u)
-        assert result_dict["dsn"] == "tidbcloudlake://user:pass@localhost:8000/testdb"
-
-        u = url.make_url("tidbcloudlake://user:pass@host:443/db")
+        u = url.make_url("lake://user:pass@host:443/db?warehouse=test")
         args, kwargs = dialect.create_connect_args(u)
         assert args == []
-        assert kwargs["dsn"] == "tidbcloudlake://user:pass@host:443/db"
+        assert kwargs["dsn"] == "lake://user:pass@host:443/db?warehouse=test"
 
-        u = url.make_url("tidbcloudlake://user:pass@host:443/db?warehouse=test&secure=True")
+        u = url.make_url("lake://user:pass@host:443/db")
         args, kwargs = dialect.create_connect_args(u)
         assert args == []
-        assert kwargs["dsn"] == "tidbcloudlake://user:pass@host:443/db?warehouse=test&secure=True"
+        assert kwargs["dsn"] == "lake://user:pass@host:443/db"
+
+        u = url.make_url("lake://user:pass@host:443/db?warehouse=test&secure=True")
+        args, kwargs = dialect.create_connect_args(u)
+        assert args == []
+        assert kwargs["dsn"] == "lake://user:pass@host:443/db?warehouse=test&secure=True"
 
     def test_do_execute(
             self, dialect: TiDBCloudLakeDialect, cursor: mock.Mock(spec=MockCursor)
