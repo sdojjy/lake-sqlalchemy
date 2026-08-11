@@ -1468,7 +1468,12 @@ class TiDBCloudLakeDialect(default.DefaultDialect):
         return self.dbapi.connect(*cargs, **cparams)
 
     def create_connect_args(self, url):
-        return ([], {"dsn": url.render_as_string(hide_password=False)})
+        # The Lake driver only accepts the public ``lake://`` scheme. Keep the
+        # legacy SQLAlchemy aliases working by normalizing them at this boundary.
+        return (
+            [],
+            {"dsn": url.set(drivername="lake").render_as_string(hide_password=False)},
+        )
 
     def create_server_side_cursor(self):
         return self.create_default_cursor()
