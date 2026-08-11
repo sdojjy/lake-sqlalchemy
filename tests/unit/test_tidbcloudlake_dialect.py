@@ -33,6 +33,11 @@ class TestTiDBCloudLakeDialect:
         assert dialect.context == {}
 
     def test_create_connect_args(self, dialect: TiDBCloudLakeDialect):
+        u = url.make_url("lake://user:pass@host:443/db?warehouse=test")
+        args, kwargs = dialect.create_connect_args(u)
+        assert args == []
+        assert kwargs["dsn"] == "lake://user:pass@host:443/db?warehouse=test"
+
         u = url.make_url("tidbcloudlake://user:pass@localhost:8000/testdb")
         result_list, result_dict = dialect.create_connect_args(u)
         assert result_dict["dsn"] == "tidbcloudlake://user:pass@localhost:8000/testdb"

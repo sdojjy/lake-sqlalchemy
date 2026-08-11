@@ -1468,20 +1468,7 @@ class TiDBCloudLakeDialect(default.DefaultDialect):
         return self.dbapi.connect(*cargs, **cparams)
 
     def create_connect_args(self, url):
-        parameters = dict(url.query)
-        kwargs = {
-            "dsn": "tidbcloudlake://%s:%s@%s:%d/%s"
-            % (url.username, url.password, url.host, url.port or 8000, url.database),
-        }
-
-        if parameters:
-            kwargs["dsn"] += "?"
-            param_strings = []
-            for k, v in parameters.items():
-                param_strings.append(f"{k}={v}")
-            kwargs["dsn"] += "&".join(param_strings)
-
-        return ([], kwargs)
+        return ([], {"dsn": url.render_as_string(hide_password=False)})
 
     def create_server_side_cursor(self):
         return self.create_default_cursor()
