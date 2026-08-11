@@ -39,12 +39,12 @@ else:
 
     class ComponentReflectionTest(_ComponentReflectionTest):
 
-        @testing.skip("tidbcloudlake")
+        @testing.skip("lake")
         def test_get_indexes(self):
             pass
 
 class ComponentReflectionTestExtra(_ComponentReflectionTestExtra):
-    @testing.skip("tidbcloudlake") #ToDo  No length in TiDB Cloud Lake
+    @testing.skip("lake") #ToDo  No length in TiDB Cloud Lake
     @testing.requires.table_reflection
     def test_varchar_reflection(self, connection, metadata):
         typ = self._type_round_trip(
@@ -53,7 +53,7 @@ class ComponentReflectionTestExtra(_ComponentReflectionTestExtra):
         assert isinstance(typ, sql_types.String)
         eq_(typ.length, 52)
 
-    @testing.skip("tidbcloudlake")  # ToDo  No length in TiDB Cloud Lake
+    @testing.skip("lake")  # ToDo  No length in TiDB Cloud Lake
     @testing.requires.table_reflection
     @testing.combinations(
         sql_types.String,
@@ -114,29 +114,29 @@ class BooleanTest(_BooleanTest):
 
 class CompoundSelectTest(_CompoundSelectTest):
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_limit_offset_aliased_selectable_in_unions(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_limit_offset_selectable_in_unions(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_limit_offset_in_unions_from_alias(self):
         pass
 
 
 class DeprecatedCompoundSelectTest(_DeprecatedCompoundSelectTest):
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_limit_offset_aliased_selectable_in_unions(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_limit_offset_selectable_in_unions(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_limit_offset_in_unions_from_alias(self):
         pass
 
@@ -146,54 +146,54 @@ class HasIndexTest(_HasIndexTest):
 
 
 class InsertBehaviorTest(_InsertBehaviorTest):
-    @testing.skip("tidbcloudlake")  # required autoinc columns
+    @testing.skip("lake")  # required autoinc columns
     def test_insert_from_select_autoinc(self, connection):
         pass
 
-    @testing.skip("tidbcloudlake")  # required autoinc columns
+    @testing.skip("lake")  # required autoinc columns
     def test_insert_from_select_autoinc_no_rows(self, connection):
         pass
 
-    @testing.skip("tidbcloudlake")  # required autoinc columns
+    @testing.skip("lake")  # required autoinc columns
     def test_no_results_for_non_returning_insert(self, connection):
         pass
 
 
 class LikeFunctionsTest(_LikeFunctionsTest):
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_contains_autoescape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_contains_escape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_contains_autoescape_escape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_endswith_autoescape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_endswith_escape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_endswith_autoescape_escape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_startswith_autoescape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_startswith_escape(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_startswith_autoescape_escape(self):
         pass
 
@@ -300,19 +300,19 @@ class ServerSideCursorsTest(_ServerSideCursorsTest):
     ):
         super()
 
-    @testing.skip("tidbcloudlake")  # ToDo - requires implementation of `stream_results` option
+    @testing.skip("lake")  # ToDo - requires implementation of `stream_results` option
     def test_stmt_enabled_conn_option_disabled(self):
         pass
 
-    @testing.skip("tidbcloudlake")  # ToDo - requires implementation of `stream_results` option
+    @testing.skip("lake")  # ToDo - requires implementation of `stream_results` option
     def test_aliases_and_ss(self):
         pass
 
-    @testing.skip("tidbcloudlake")  # Skipped because requires auto increment primary key
+    @testing.skip("lake")  # Skipped because requires auto increment primary key
     def test_roundtrip_fetchall(self):
         pass
 
-    @testing.skip("tidbcloudlake")  # Skipped because requires auto increment primary key
+    @testing.skip("lake")  # Skipped because requires auto increment primary key
     def test_roundtrip_fetchmany(self):
         pass
 
@@ -320,7 +320,7 @@ if version.parse(sqlalchemy.__version__) >= version.parse('2.0.0'):
     class EnumTest(_EnumTest):
         __backend__ = True
 
-        @testing.skip("tidbcloudlake")  # Skipped because no supporting enums yet
+        @testing.skip("lake")  # Skipped because no supporting enums yet
         def test_round_trip_executemany(self, connection):
             pass
 
@@ -723,11 +723,11 @@ class HasSequenceTest(_HasSequenceTest):
             Column("id", Integer, primary_key=True),
         )
 
-    @testing.skip("tidbcloudlake")  # ToDo - requires definition of sequences with schema
+    @testing.skip("lake")  # ToDo - requires definition of sequences with schema
     def test_has_sequence_remote_not_in_default(self, connection):
         eq_(inspect(connection).has_sequence("schema_seq"), False)
 
-    @testing.skip("tidbcloudlake")  # ToDo - requires definition of sequences with schema
+    @testing.skip("lake")  # ToDo - requires definition of sequences with schema
     def test_get_sequence_names(self, connection):
         exp = {"other_seq", "user_id_seq"}
 
@@ -735,7 +735,7 @@ class HasSequenceTest(_HasSequenceTest):
         is_true(res.intersection(exp) == exp)
         is_true("schema_seq" not in res)
 
-    @testing.skip("tidbcloudlake")  # ToDo - requires definition of sequences with schema
+    @testing.skip("lake")  # ToDo - requires definition of sequences with schema
     @testing.requires.schemas
     def test_get_sequence_names_no_sequence_schema(self, connection):
         eq_(
@@ -745,7 +745,7 @@ class HasSequenceTest(_HasSequenceTest):
             [],
         )
 
-    @testing.skip("tidbcloudlake")  # ToDo - requires definition of sequences with schema
+    @testing.skip("lake")  # ToDo - requires definition of sequences with schema
     @testing.requires.schemas
     def test_get_sequence_names_sequences_schema(self, connection):
         eq_(
