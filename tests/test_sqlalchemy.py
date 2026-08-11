@@ -210,17 +210,17 @@ class QuotedNameArgumentTest(_QuotedNameArgumentTest):
         )(fn)
 
     @quote_fixtures
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_get_pk_constraint(self, name):
         pass
 
     @quote_fixtures
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_get_foreign_keys(self, name):
         pass
 
     @quote_fixtures
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_get_indexes(self, name):
         pass
 
@@ -241,11 +241,11 @@ class BinaryTest(_BinaryTest):
     # It is possible to do this
     # INSERT INTO binary_test (x) values (TO_BINARY('7\xe7\x9f'))
     # but that's not really a solution I don't think
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_binary_roundtrip(self):
         pass
 
-    @testing.skip("tidbcloudlake")
+    @testing.skip("lake")
     def test_pickle_roundtrip(self):
         pass
 
