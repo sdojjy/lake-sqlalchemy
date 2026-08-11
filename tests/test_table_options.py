@@ -110,7 +110,7 @@ class CompileTiDBCloudLakeTableOptionsTest(fixtures.TestBase, AssertsCompiledSQL
     #     m = MetaData()
     #     tbl = Table(
     #         'atable', m, Column("id", Integer),
-    #         tidbcloudlake_engine_options=(
+    #         lake_engine_options=(
     #             ("compression", "snappy"),
     #             ("storage_format", "parquet"),
     #         ))
