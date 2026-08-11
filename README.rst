@@ -165,7 +165,7 @@ The CopyIntoLocation command can be used as below::
 Table Options
 ---------------------
 
-TiDB Cloud Lake SQLAlchemy supports tidbcloudlake specific table options for Engine, Cluster Keys and Transient tables
+TiDB Cloud Lake SQLAlchemy supports Lake-specific table options for Engine, Cluster Keys and Transient tables
 
 The table options can be used as below::
 
@@ -179,7 +179,7 @@ The table options can be used as below::
             "t_transient",
             meta,
             Column("c1", Integer),
-            tidbcloudlake_transient=True,
+            lake_transient=True,
         )
 
         # Example of Engine
@@ -187,7 +187,7 @@ The table options can be used as below::
             "t_engine",
             meta,
             Column("c1", Integer),
-            tidbcloudlake_engine='Memory',
+            lake_engine='Memory',
         )
 
         # Examples of Table with Cluster Keys
@@ -195,7 +195,7 @@ The table options can be used as below::
             "t_cluster_1",
             meta,
             Column("c1", Integer),
-            tidbcloudlake_cluster_by=[c1],
+            lake_cluster_by=[c1],
         )
         #
         c = Column("id", Integer)
@@ -205,7 +205,7 @@ The table options can be used as below::
             meta,
             c,
             c2,
-            tidbcloudlake_cluster_by=[cast(c, String), c2],
+            lake_cluster_by=[cast(c, String), c2],
         )
 
         meta.create_all(engine)

@@ -12,15 +12,15 @@ dialect in conjunction with the :class:`_schema.Table` construct:
 
 * ``ENGINE``::
 
-    Table("some_table", metadata, ..., tidbcloudlake_engine=FUSE|Memory|Random|Iceberg|Delta)
+    Table("some_table", metadata, ..., lake_engine=FUSE|Memory|Random|Iceberg|Delta)
 
 * ``CLUSTER KEY``::
 
-    Table("some_table", metadata, ..., tidbcloudlake_cluster_by=str|LIST(expr|str))
+    Table("some_table", metadata, ..., lake_cluster_by=str|LIST(expr|str))
 
 * ``TRANSIENT``::
 
-    Table("some_table", metadata, ..., tidbcloudlake_transient=True|False)
+    Table("some_table", metadata, ..., lake_transient=True|False)
 
 """
 import decimal
@@ -1322,7 +1322,7 @@ class TiDBCloudLakeDDLCompiler(compiler.DDLCompiler):
 
     def visit_create_table(self, create, **kw):
         table = create.element
-        db_opts = table.dialect_options["tidbcloudlake"]
+        db_opts = table.dialect_options["lake"]
         if "transient" in db_opts and db_opts["transient"]:
             if "transient" not in [p.lower() for p in table._prefixes]:
                 table._prefixes.append("TRANSIENT")
@@ -1330,7 +1330,7 @@ class TiDBCloudLakeDDLCompiler(compiler.DDLCompiler):
 
     def post_create_table(self, table):
         table_opts = []
-        db_opts = table.dialect_options["tidbcloudlake"]
+        db_opts = table.dialect_options["lake"]
 
         engine = db_opts.get("engine")
         if engine is not None:
@@ -1714,12 +1714,12 @@ class TiDBCloudLakeDialect(default.DefaultDialect):
             )
 
         if result.engine_full:
-            options["tidbcloudlake_engine"] = result.engine_full
+            options["lake_engine"] = result.engine_full
         if result.cluster_by:
             cluster_by = re.match(r"\((.*)\)", result.cluster_by).group(1)
-            options["tidbcloudlake_cluster_by"] = cluster_by
+            options["lake_cluster_by"] = cluster_by
         if result.is_transient:
-            options["tidbcloudlake_is_transient"] = result.is_transient
+            options["lake_is_transient"] = result.is_transient
 
         # engine options
 
