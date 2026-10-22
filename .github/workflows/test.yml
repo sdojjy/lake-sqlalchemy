@@ -31,7 +31,8 @@ jobs:
       - name: Pip Install
         run: |
           pip install pipenv
-          pipenv install --dev --skip-lock
+          pipenv verify
+          pipenv sync --dev
 
       - name: Verify Service Running
         run: |

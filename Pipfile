@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-databend-sqlalchemy = {file = ".", editable = true}
+tidbcloudlake-sqlalchemy = {file = ".", editable = true}
 
 [dev-packages]
-black = "*"
+black = ">=26.3.1"
 flake8 = "*"
 pytest = "*"
 pytest-xdist = "*"
