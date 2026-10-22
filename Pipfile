@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 tidbcloudlake-sqlalchemy = {file = ".", editable = true}
+# The upstream conformance tests import SQLAlchemy 2.0-only test classes.
+sqlalchemy = ">=2.0,<2.1"
 
 [dev-packages]
 black = ">=26.3.1"
