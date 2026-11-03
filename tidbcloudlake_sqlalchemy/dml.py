@@ -12,6 +12,18 @@ from sqlalchemy.sql.elements import ClauseElement
 from sqlalchemy.sql.expression import select
 from sqlalchemy.sql.roles import FromClauseRole
 
+# Placeholder emitted by __repr__ in place of a credential-bearing value. Reprs of these constructs
+# are documented as "for debugging / logging purposes only", which means they land in application
+# logs, error trackers and pytest assertion dumps - a much lower privilege bar than the object store
+# or the warehouse itself. Compiled SQL (see the dialect visitors) already carries the real values
+# because the statement is materialised client side; the repr must not add a second copy.
+REDACTED = "***"
+
+
+def _redact(value):
+    """Render a credential-bearing attribute for __repr__: never the value itself."""
+    return f"'{REDACTED}'" if value else "'<unset>'"
+
 
 class _OnMergeBaseClause(ClauseElement):
     # __visit_name__ = "on_merge_base_clause"
@@ -129,9 +141,13 @@ class _CopyIntoBase(UpdateBase):
         """
         repr for debugging / logging purposes only. For compilation logic, see
         the corresponding visitor in base.py
+
+        The storage clause renders through its own (credential-redacting) repr, and the target goes
+        through repr() as well so that a StageClause (which no compiler visitor accepts) does not
+        make this repr raise.
         """
-        val = f"COPY INTO {self.target} FROM {repr(self.from_)}"
-        return val + f" {repr(self.file_format)} ({self.options})"
+        val = f"COPY INTO {self.target!r} FROM {self.from_!r}"
+        return val + f" {self.file_format!r} ({self.options!r})"
 
     def bind(self):
         return None
@@ -530,32 +546,28 @@ class AmazonS3(_StorageClause):
             self.security_token = security_token
 
     def __repr__(self):
-        return (
-            f"'{self.uri}' \n"
-            f"CONNECTION = (\n"
-            f"  ENDPOINT_URL = '{self.endpoint_url}' \n"
-            if self.endpoint_url
-            else (
-                ""
-                f"  ACCESS_KEY_ID = '{self.access_key_id}' \n"
-                f"  SECRET_ACCESS_KEY  = '{self.secret_access_key}'\n"
-                f"  ENABLE_VIRTUAL_HOST_STYLE  = '{self.enable_virtual_host_style}'\n"
-                if self.enable_virtual_host_style
-                else (
-                    "" f"  MASTER_KEY  = '{self.master_key}'\n"
-                    if self.master_key
-                    else (
-                        "" f"  REGION  = '{self.region}'\n"
-                        if self.region
-                        else (
-                            "" f"  SECURITY_TOKEN  = '{self.security_token}'\n"
-                            if self.security_token
-                            else "" f")"
-                        )
-                    )
-                )
+        # Credential values are redacted: this repr is documented as "for debugging / logging
+        # purposes only" and must be safe to emit into application logs.
+        lines = [
+            f"'{self.uri}'",
+            "CONNECTION = (",
+            f"  ACCESS_KEY_ID = {_redact(getattr(self, 'access_key_id', None))}",
+            f"  SECRET_ACCESS_KEY = {_redact(getattr(self, 'secret_access_key', None))}",
+        ]
+        if getattr(self, "endpoint_url", None):
+            lines.append(f"  ENDPOINT_URL = '{self.endpoint_url}'")
+        if getattr(self, "enable_virtual_host_style", None) is not None:
+            lines.append(
+                f"  ENABLE_VIRTUAL_HOST_STYLE = '{self.enable_virtual_host_style}'"
             )
-        )
+        if getattr(self, "master_key", None):
+            lines.append(f"  MASTER_KEY = {_redact(self.master_key)}")
+        if getattr(self, "region", None):
+            lines.append(f"  REGION = '{self.region}'")
+        if getattr(self, "security_token", None):
+            lines.append(f"  SECURITY_TOKEN = {_redact(self.security_token)}")
+        lines.append(")")
+        return "\n".join(lines)
 
 
 class AzureBlobStorage(_StorageClause):
@@ -575,12 +587,13 @@ class AzureBlobStorage(_StorageClause):
         self.path = r.path
 
     def __repr__(self):
+        # ACCOUNT_KEY is a credential: redacted for the same reason as AmazonS3.__repr__.
         return (
             f"'{self.uri}' \n"
             f"CONNECTION = (\n"
             f"  ENDPOINT_URL = 'https://{self.account_name}.blob.core.windows.net' \n"
             f"  ACCOUNT_NAME = '{self.account_name}' \n"
-            f"  ACCOUNT_KEY = '{self.account_key}'\n"
+            f"  ACCOUNT_KEY = {_redact(self.account_key)}\n"
             f")"
         )
 
@@ -599,10 +612,11 @@ class GoogleCloudStorage(_StorageClause):
         self.credentials = credentials
 
     def __repr__(self):
+        # CREDENTIAL is the base64 of a service-account JSON private key: redacted.
         return (
             f"'{self.uri}' \n"
             f"CONNECTION = (\n"
             f"  ENDPOINT_URL = 'https://storage.googleapis.com' \n"
-            f"  CREDENTIAL = '{self.credentials}' \n"
+            f"  CREDENTIAL = {_redact(self.credentials)} \n"
             f")"
         )
