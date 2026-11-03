@@ -209,3 +209,25 @@ The table options can be used as below::
         )
 
         meta.create_all(engine)
+
+Release Notes
+-------------
+
+0.5.8
+~~~~~
+
+* **Security**: the ``__repr__`` of the ``COPY INTO`` storage clauses (``AmazonS3``,
+  ``AzureBlobStorage``, ``GoogleCloudStorage``) no longer renders cloud credentials. Secret-bearing
+  fields (``SECRET_ACCESS_KEY``, ``MASTER_KEY``, ``SECURITY_TOKEN``, ``ACCESS_KEY_ID``, the Azure
+  ``ACCOUNT_KEY`` and the GCS ``CREDENTIAL`` service-account key) are shown as ``'***'`` (``'<unset>'``
+  when not set), so a repr, a log record or a pytest assertion dump can be shared safely. The compiled
+  SQL still carries the real values: ``str(stmt)`` / ``print(stmt)`` are unchanged and must not be
+  logged.
+* Fixed two latent repr bugs on the same path: ``AmazonS3.__repr__`` used to raise ``AttributeError``
+  when optional fields (``endpoint_url`` and friends) were unset, and the ``CopyIntoTable`` /
+  ``CopyIntoLocation`` reprs used to raise ``UnsupportedCompilationError`` when the target was a
+  ``StageClause`` or a storage clause (the target was rendered with ``str()``, i.e. compiled). The repr is now complete and stable instead of truncated. Behaviour change:
+  ``repr(CopyIntoTable(target=<TableClause>))`` now prints the SQLAlchemy object text instead of
+  ``schema.table``; use ``str(stmt)`` to compile the statement.
+* ``ParamEscaper.escape_args`` error messages now report the parameter *type* (e.g. ``Unsupported param
+  format: SecretParams``) instead of interpolating the parameter values into the exception text.

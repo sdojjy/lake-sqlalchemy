@@ -25,7 +25,10 @@ class ParamEscaper:
         elif isinstance(parameters, (list, tuple)):
             return tuple(self.escape_item(x) for x in parameters)
         else:
-            raise Exception("Unsupported param format: {}".format(parameters))
+            # Do not interpolate the value: it is user data and this message ends up in logs.
+            raise Exception(
+                "Unsupported param format: {}".format(type(parameters).__name__)
+            )
 
     def escape_number(self, item):
         return item
