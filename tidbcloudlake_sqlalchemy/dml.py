@@ -4,7 +4,7 @@
 #       licensed under the same Apache 2.0 License
 from enum import Enum
 from types import NoneType
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from sqlalchemy.sql.selectable import Select, Subquery, TableClause
 from sqlalchemy.sql.dml import UpdateBase
@@ -23,6 +23,31 @@ REDACTED = "***"
 def _redact(value):
     """Render a credential-bearing attribute for __repr__: never the value itself."""
     return f"'{REDACTED}'" if value else "'<unset>'"
+
+
+def _redact_uri(uri):
+    """Keep routing information in diagnostics without URL credentials or signed query data."""
+    try:
+        parts = urlparse(uri)
+        return urlunparse(
+            parts._replace(
+                netloc=parts.netloc.rsplit("@", 1)[-1],
+                query=REDACTED if parts.query else "",
+                fragment=REDACTED if parts.fragment else "",
+            )
+        )
+    except ValueError:
+        return REDACTED
+
+
+def _parse_storage_uri(uri, scheme, label):
+    try:
+        parts = urlparse(uri)
+    except ValueError:
+        raise ValueError(f"Invalid {label} URI") from None
+    if parts.scheme != scheme:
+        raise ValueError(f"Invalid {label} URI")
+    return parts
 
 
 class _OnMergeBaseClause(ClauseElement):
@@ -525,9 +550,7 @@ class AmazonS3(_StorageClause):
         region: str = None,
         security_token: str = None,
     ):
-        r = urlparse(uri)
-        if r.scheme != "s3":
-            raise ValueError(f"Invalid S3 URI: {uri}")
+        r = _parse_storage_uri(uri, "s3", "S3")
 
         self.uri = uri
         self.access_key_id = access_key_id
@@ -549,13 +572,13 @@ class AmazonS3(_StorageClause):
         # Credential values are redacted: this repr is documented as "for debugging / logging
         # purposes only" and must be safe to emit into application logs.
         lines = [
-            f"'{self.uri}'",
+            f"'{_redact_uri(self.uri)}'",
             "CONNECTION = (",
             f"  ACCESS_KEY_ID = {_redact(getattr(self, 'access_key_id', None))}",
             f"  SECRET_ACCESS_KEY = {_redact(getattr(self, 'secret_access_key', None))}",
         ]
         if getattr(self, "endpoint_url", None):
-            lines.append(f"  ENDPOINT_URL = '{self.endpoint_url}'")
+            lines.append(f"  ENDPOINT_URL = '{_redact_uri(self.endpoint_url)}'")
         if getattr(self, "enable_virtual_host_style", None) is not None:
             lines.append(
                 f"  ENABLE_VIRTUAL_HOST_STYLE = '{self.enable_virtual_host_style}'"
@@ -576,9 +599,7 @@ class AzureBlobStorage(_StorageClause):
     __visit_name__ = "azure_blob_storage"
 
     def __init__(self, *, uri: str, account_name: str, account_key: str):
-        r = urlparse(uri)
-        if r.scheme != "azblob":
-            raise ValueError(f"Invalid Azure URI: {uri}")
+        r = _parse_storage_uri(uri, "azblob", "Azure")
 
         self.uri = uri
         self.account_name = account_name
@@ -589,7 +610,7 @@ class AzureBlobStorage(_StorageClause):
     def __repr__(self):
         # ACCOUNT_KEY is a credential: redacted for the same reason as AmazonS3.__repr__.
         return (
-            f"'{self.uri}' \n"
+            f"'{_redact_uri(self.uri)}' \n"
             f"CONNECTION = (\n"
             f"  ENDPOINT_URL = 'https://{self.account_name}.blob.core.windows.net' \n"
             f"  ACCOUNT_NAME = '{self.account_name}' \n"
@@ -604,9 +625,7 @@ class GoogleCloudStorage(_StorageClause):
     __visit_name__ = "google_cloud_storage"
 
     def __init__(self, *, uri, credentials):
-        r = urlparse(uri)
-        if r.scheme != "gcs":
-            raise ValueError(f"Invalid Google Cloud Storage URI: {uri}")
+        r = _parse_storage_uri(uri, "gcs", "Google Cloud Storage")
 
         self.uri = uri
         self.credentials = credentials
@@ -614,7 +633,7 @@ class GoogleCloudStorage(_StorageClause):
     def __repr__(self):
         # CREDENTIAL is the base64 of a service-account JSON private key: redacted.
         return (
-            f"'{self.uri}' \n"
+            f"'{_redact_uri(self.uri)}' \n"
             f"CONNECTION = (\n"
             f"  ENDPOINT_URL = 'https://storage.googleapis.com' \n"
             f"  CREDENTIAL = {_redact(self.credentials)} \n"
