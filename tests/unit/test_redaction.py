@@ -60,14 +60,18 @@ def test_amazon_s3_repr_redacts_every_credential():
 
 def test_amazon_s3_repr_works_with_only_the_required_fields():
     """Regression: the old repr indexed unset attributes and raised AttributeError."""
-    rendered = repr(AmazonS3(uri="s3://bucket/", access_key_id="AK", secret_access_key="SK"))
+    rendered = repr(
+        AmazonS3(uri="s3://bucket/", access_key_id="AK", secret_access_key="SK")
+    )
     _assert_no_secrets(rendered)
     assert "s3://bucket/" in rendered
 
 
 def test_azure_blob_repr_redacts_account_key():
     storage = AzureBlobStorage(
-        uri="azblob://container/path/", account_name="account", account_key=AZURE_ACCOUNT_KEY
+        uri="azblob://container/path/",
+        account_name="account",
+        account_key=AZURE_ACCOUNT_KEY,
     )
     rendered = repr(storage)
     _assert_no_secrets(rendered)
@@ -102,3 +106,54 @@ def test_unset_credentials_are_reported_as_unset(secret):
     s3 = AmazonS3(uri="s3://bucket/", access_key_id="AK", secret_access_key="")
     s3.master_key = secret
     assert "<unset>" in repr(s3)
+
+
+@pytest.mark.parametrize(
+    "storage",
+    [
+        lambda uri: AmazonS3(
+            uri=uri,
+            access_key_id="key",
+            secret_access_key="secret",
+            endpoint_url="https://user:secret-endpoint@storage.example/?token=endpoint-token",
+        ),
+        lambda uri: AzureBlobStorage(
+            uri=uri.replace("s3:", "azblob:"),
+            account_name="account",
+            account_key="secret",
+        ),
+        lambda uri: GoogleCloudStorage(
+            uri=uri.replace("s3:", "gcs:"), credentials="secret"
+        ),
+    ],
+)
+def test_storage_uri_diagnostics_redact_without_mutating_execution_values(storage):
+    uri = "s3://user:uri-password@bucket/path?token=signed-query#fragment-token"
+    clause = storage(uri)
+    rendered = repr(clause)
+    for value in [
+        "uri-password",
+        "signed-query",
+        "fragment-token",
+        "secret-endpoint",
+        "endpoint-token",
+    ]:
+        assert value not in rendered
+    assert "bucket/path" in rendered
+    assert "signed-query" in clause.uri
+    if isinstance(clause, AmazonS3):
+        assert "endpoint-token" in clause.endpoint_url
+
+
+@pytest.mark.parametrize(
+    "uri",
+    [
+        "http://user:uri-password@bucket/path?token=signed-query",
+        "s3://[invalid?token=signed-query",
+    ],
+)
+def test_invalid_storage_uri_errors_do_not_echo_credentials(uri):
+    with pytest.raises(ValueError) as error:
+        AmazonS3(uri=uri, access_key_id="key", secret_access_key="secret")
+    assert "uri-password" not in str(error.value)
+    assert "signed-query" not in str(error.value)
